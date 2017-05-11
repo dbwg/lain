@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+{% set join_link="https://discordapp.com/oauth2/authorize?&client_id=311893800320761856&scope=bot&permissions=24606" -%}
+{% block title %}root{% endblock %}
+{% block content %}
+
+<section class="hero is-danger">
+  <div class="hero-body">
+    <div class="container">
+      <h1 class="title"><strong>Disclaimer:</strong> features advertised here probably haven't been built yet! I just started this project a week ago.</h1>
+    </div>
+  </div>
+</section>
+
+<section class="hero is-medium is-dark is-bold has-text-centered">
+  <div class="hero-body">
+    <div class="container">
+      <img class="circular--square" style="width: 10em; height: auto;" src="{{url_for('static', filename='img/avy.jpg')}}" />
+
+      <h1 class="title"><span class="is-smallcaps">Lain</span></h1>
+      <h2 class="subtitle">A <strong>modern</strong> Discord bot, built on {Rust, Lua, Python, Redis, Postgresql}.</h2>
+
+      <a class="button is-primary is-large" href="{{join_link}}">
+            <span class="icon"><i class="fa fa-gear"></i></span>
+            <span>Invite</span>
+          </a>
+    </div>
+  </div>
+</section>
+
+<section class="hero is-info">
+  <div class="hero-body">
+    <div class="container">
+      <div class="columns has-text-centered">
+        <a class="column" href="#tags">
+          <span class="icon is-large"><i class="fa fa-hdd-o"></i></span>
+          <p class="title is-4">Flexible <strong>tag storage system</strong></p>
+        </a>
+        <a class="column">
+          <span class="icon is-large"><i class="fa fa-cogs"></i></span>
+          <p class="title is-4">Extensive <strong>per-server configuration</strong></p>
+        </a>
+        <a class="column" href="#pluglets">
+          <span class="icon is-large"><i class="fa fa-plug"></i></span>
+          <p class="title is-4">User-authorable <strong>pluglets</strong></p>
+        </a>
+        <a class="column" href="#dash">
+          <span class="icon is-large"><i class="fa fa-search"></i></span>
+          <p class="title is-4">Powerful <strong>online interface</strong> for moderation</p>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="columns">
+      <div class="column is-4">
+        <h2 id="tags" class="title is-2">
+          <span class="icon is-medium"><i class="fa fa-tag"></i></span>
+          Tag system
+        </h2>
+        <h3 class="subtitle is-4">Lain's tagging allows linking images or text to tags per-server, as well as configurably sharing tags between servers.</h3>
+      </div>
+      <div class="column has-text-centered"><img src="https://placehold.it/600x300" /></div>
+    </div>
+  </div>
+</section>
+
+<hr class="is-marginless" />
+
+<section class="section">
+  <div class="container">
+    <div class="columns">
+      <div class="column is-4">
+        <h2 id="pluglets" class="title is-2">
+          <span class="icon is-medium"><i class="fa fa-cubes"></i></span>
+          Pluglets
+        </h2>
+        <p class="subtitle is-4">
+          In addition to Lain's built-in functionality, users can write small, sandboxed Lua scripts called <strong>pluglets</strong> to customize functionality.
+        </p><p class="subtitle is-4">
+          Pluglets can be shared on this website and "dropped in" to any server.
+        </p>
+      </div>
+
+      <div class="column">
+        <pre>
+          <code class="language-lua">
+--[[ The following is an example of a Lain pluglet ]]--
+command "countdown {n=3}" {
+  description = "Count down from {n} to zero"
+
+  handler = function(bot, n)
+    local m = bot:send(tostring(n))
+    for i=n-1,0,-1
+      m.edit(tostring(n))
+    end
+  end
+}
+          </code>
+        </pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="is-marginless" />
+
+<section class="section">
+  <div class="container">
+    <div class="columns">
+      <div class="column is-4">
+        <h2 id="dash" class="title is-2">
+          <span class="icon is-medium"><i class="fa fa-sliders"></i></span>
+          Online dashboard
+        </h2>
+        <p class="subtitle is-4">
+          The online dashboard lets administrators perform fine-grained member, role, and log searches, see statistics about server activity, perform granular prunes, bans, kicks, and suspends, and configure Lain.
+        </p>
+      </div>
+      <div class="column has-text-centered"><img src="https://placehold.it/700x350" /></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

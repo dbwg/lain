@@ -1,0 +1,49 @@
+<!doctype html>
+<!DOCTYPE html>
+<html>
+  <head>
+    {% block head %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{%block title%}{%endblock%}@lainbot</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.1/css/bulma.css" integrity="sha256-PELQzdZwUQw2WSX3q4QLMSzDqQyWrmrXODp2bZy6JOU=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="{{url_for('static', filename='vendor/prism.css')}}" />
+    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}" />
+    {% endblock %}
+  </head>
+  <body>
+    <nav class="nav has-shadow">
+      <div class="container">
+        <div class="nav-left">
+          <a class="nav-item nav-title is-smallcaps" href="{{url_for('index')}}"">LainBot</a>
+        </div>
+
+        <span class="nav-toggle" id="nav-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+
+        <div class="nav-right nav-menu" id="nav-menu">
+          <a class="nav-item is-tab" href="{{url_for('login')}}">Login</a>
+        </div>
+      </div>
+    </nav>
+    {% for message in get_flashed_messages() %}
+    <div class="notification">{{message}}</div>
+    {% endfor %}
+    <main>
+      {% block content %}
+      {% endblock %}
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="{{url_for('static', filename='vendor/prism.js')}}"></script>
+    <script>Prism.plugins.customClass.prefix('prism--');</script>
+    <script src="{{url_for('static', filename='js/wires.js')}}"></script>
+  </body>
+</html>
