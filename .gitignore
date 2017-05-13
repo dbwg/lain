@@ -1,4 +1,5 @@
 .env
+www/app.db
 www/config.py
 www/venv/
 
