@@ -36,10 +36,18 @@
         </div>
       </div>
     </nav>
-    {% for message in get_flashed_messages() %}
-    <div class="notification">{{message}}</div>
-    {% endfor %}
     <main>
+      {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+          <div>
+          {% for category, message in messages %}
+            {% set message_classmap = {'error': 'is-danger', 'success': 'is-success'} -%}
+            <div class="notification {{message_classmap.get(category, '')}}">{{message}}</div>
+          {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
       {% block content %}
       {% endblock %}
     </main>
