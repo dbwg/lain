@@ -1,4 +1,6 @@
 .env
+www/config.py
+www/venv/
 
 target
 
