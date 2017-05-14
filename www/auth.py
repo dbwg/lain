@@ -1,14 +1,10 @@
-from werkzeug import security
-from flask import request, redirect, flash, url_for, jsonify, session
-import flask_login
-
-from .models import User
-from www import app, db, login_manager
 from requests_oauthlib import OAuth2Session
+from flask import Blueprint, request, redirect, abort, flash, url_for, session
+from flask_login import login_user, logout_user, login_required
 
-@login_manager.user_loader
-def load_user(uid):
-	return User.query.get(uid)
+from www import app, db, login_manager
+from .models import User
+from .utils import is_safe_url
 
 API_BASE_URL = 'https://discordapp.com/api'
 OAUTH2_CLIENT_ID = app.config['DISCORD_CLIENT_ID']
@@ -18,6 +14,10 @@ TOKEN_URL = API_BASE_URL + '/oauth2/token'
 SCOPES = ['identify', 'guilds']
 
 import os; os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = 'true'
+
+@login_manager.user_loader
+def load_user(uid):
+	return User.query.get(uid)
 
 def oauth2_token_updater(token):
 	session['oauth2_token'] = token
