@@ -47,6 +47,7 @@ def login():
 	discord = oauth2_session(scope=SCOPES)
 	auth_url, state = discord.authorization_url(BASE_AUTH_URL)
 	session['oauth2_state'] = state
+	session['next'] = request.args.get('next')
 
 	return redirect(auth_url)
 
@@ -72,5 +73,10 @@ def authorized():
 	db.session.merge(user)
 	db.session.commit()
 
+
+	next = session['next']
+	if not is_safe_redirect(next):
+		return abort(400)
+
 	flash('Successful OAuth login!', 'success')
-	return redirect(url_for('index'))
+	return redirect(next or url_for('index'))
