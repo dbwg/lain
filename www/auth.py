@@ -36,11 +36,12 @@ def oauth2_session(token=None, state=None, scope=None):
 		auto_refresh_url=TOKEN_URL,
 		token_updater=oauth2_token_updater)
 
-def get_user():
+def discord_get_user():
 	discord = oauth2_session(token=session.get('oauth2_token'))
 	user_dat = discord.get(API_BASE_URL + '/users/@me').json()
 
-	return User(user_dat['id'], user_dat['username'], user_dat['discriminator'])
+	return User(user_dat['id'], user_dat['username'],
+		user_dat['discriminator'], user_dat['avatar'])
 
 # -- routes
 auth = Blueprint('auth', __name__)
@@ -77,8 +78,8 @@ def authorized():
 
 	session['oauth2_token'] = token
 
-	user = get_user()
-	flask_login.login_user(user)
+	user = discord_get_user()
+	login_user(user)
 	db.session.merge(user)
 	db.session.commit()
 
