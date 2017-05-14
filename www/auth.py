@@ -11,7 +11,7 @@ OAUTH2_CLIENT_ID = app.config['DISCORD_CLIENT_ID']
 OAUTH2_CLIENT_SECRET = app.config['DISCORD_CLIENT_SECRET']
 BASE_AUTH_URL = API_BASE_URL + '/oauth2/authorize'
 TOKEN_URL = API_BASE_URL + '/oauth2/token'
-SCOPES = ['identify', 'guilds']
+REQUESTED_SCOPES = ['identify', 'guilds']
 
 import os; os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = 'true'
 
@@ -47,12 +47,18 @@ auth = Blueprint('auth', __name__)
 
 @auth.route('/login')
 def login():
-	discord = oauth2_session(scope=SCOPES)
+	discord = oauth2_session(scope=REQUESTED_SCOPES)
 	auth_url, state = discord.authorization_url(BASE_AUTH_URL)
 	session['oauth2_state'] = state
 	session['next'] = request.args.get('next')
 
 	return redirect(auth_url)
+
+@auth.route('/logout')
+@login_required
+def logout():
+	logout_user()
+	return redirect(url_for('index'))
 
 @auth.route('/oauth2/authorized')
 def authorized():
