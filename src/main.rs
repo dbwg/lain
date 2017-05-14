@@ -26,7 +26,7 @@ fn main() {
 		.expect("Error opening config file!");
 	let config = Configuration::from_file(&mut config_file);
 
-	let mut client = Client::login_bot(&secrets.token);
+	let mut client = Client::login(&secrets.token);
 
 	info!("Connecting to Discord with {} shard(s)", config.shards);
 	if let Err(e) = client.start() {
