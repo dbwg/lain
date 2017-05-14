@@ -17,4 +17,7 @@ login_manager.init_app(app)
 
 # -- Import application structure
 from . import views
-from . import auth
+
+from .auth import auth
+login_manager.login_view = 'auth.login'
+app.register_blueprint(auth, url_prefix='/auth')
