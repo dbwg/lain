@@ -28,7 +28,7 @@ def oauth2_session(token=None, state=None, scope=None):
 		token=token,
 		state=state,
 		scope=scope,
-		redirect_uri=url_for('authorized', _external=True),
+		redirect_uri=url_for('.authorized', _external=True),
 		auto_refresh_kwargs = {
 			'client_id': OAUTH2_CLIENT_ID,
 			'client_secret': OAUTH2_CLIENT_SECRET,
@@ -42,7 +42,10 @@ def get_user():
 
 	return User(user_dat['id'], user_dat['username'], user_dat['discriminator'])
 
-@app.route('/login')
+# -- routes
+auth = Blueprint('auth', __name__)
+
+@auth.route('/login')
 def login():
 	discord = oauth2_session(scope=SCOPES)
 	auth_url, state = discord.authorization_url(BASE_AUTH_URL)
@@ -51,7 +54,7 @@ def login():
 
 	return redirect(auth_url)
 
-@app.route('/login/authorized')
+@auth.route('/oauth2/authorized')
 def authorized():
 	if request.values.get('error'):
 		error = request.values['error']
