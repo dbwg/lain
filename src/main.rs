@@ -24,7 +24,8 @@ fn main() {
 	info!("Loading config from {}", config_path);
 	let mut config_file = File::open(config_path)
 		.expect("Error opening config file!");
-	let config = Configuration::from_file(&mut config_file);
+	let mut config = Configuration::from_file(&mut config_file);
+	config.overlay_env();
 
 	let mut client = Client::login(&secrets.token);
 
