@@ -1,6 +1,8 @@
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate log;
+extern crate redis;
 extern crate serenity;
+
 extern crate env_logger;
 extern crate toml;
 extern crate dotenv;
@@ -26,6 +28,10 @@ fn main() {
 		.expect("Error opening config file!");
 	let mut config = Configuration::from_file(&mut config_file);
 	config.overlay_env();
+
+	let redis_client = redis::Client::open(&*config.redis_url.expect("A Redis URL must be provided"))
+		.expect("Error creating Redis client");
+	let redis_conn = redis_client.get_connection().expect("Error getting connection to Redis");
 
 	let mut client = Client::login(&secrets.token);
 
