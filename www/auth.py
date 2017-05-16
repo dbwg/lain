@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, login_required
 
 from www import app, db, login_manager
 from .models import User
-from .utils import is_safe_url
+from .utils import is_safe_redirect
 
 API_BASE_URL = 'https://discordapp.com/api'
 OAUTH2_CLIENT_ID = app.config['DISCORD_CLIENT_ID']
