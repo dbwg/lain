@@ -1,11 +1,11 @@
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate log;
-extern crate redis;
-extern crate serenity;
+#[macro_use] extern crate serenity;
 
 extern crate env_logger;
 extern crate toml;
 extern crate dotenv;
+extern crate redis;
 
 mod config;
 
