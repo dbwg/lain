@@ -16,27 +16,32 @@ use dotenv::dotenv;
 use config::{Configuration, Secrets};
 
 fn main() {
-	dotenv().ok();
-	env_logger::init().unwrap();
+    dotenv().ok();
+    env_logger::init().unwrap();
 
-	info!("Loading secrets");
-	let secrets = Secrets::from_env();
+    info!("Loading secrets");
+    let secrets = Secrets::from_env();
 
-	let config_path = "config.toml";
-	info!("Loading config from {}", config_path);
-	let mut config_file = File::open(config_path)
-		.expect("Error opening config file!");
-	let mut config = Configuration::from_file(&mut config_file);
-	config.overlay_env();
+    let config_path = "config.toml";
+    info!("Loading config from {}", config_path);
+    let mut config_file = File::open(config_path)
+        .expect("Error opening config file!");
+    let mut config = Configuration::from_file(&mut config_file);
+    config.overlay_env();
 
-	let redis_client = redis::Client::open(&*config.redis_url.expect("A Redis URL must be provided"))
-		.expect("Error creating Redis client");
-	let redis_conn = redis_client.get_connection().expect("Error getting connection to Redis");
 
-	let mut client = Client::login(&secrets.token);
+    // pick the number of shards we'll use
+    let recommended_shards = util::recommended_shards();
+    info!("Discord recommends N={} shards", recommended_shards);
+    config.shards = Some(match config.shards {
+        Some(n) => cmp::max(n, recommended_shards), // if we're using less than recommended, autobump to what discord recommends
+        None => recommended_shards,
+    });
 
-	info!("Connecting to Discord with {} shard(s)", config.shards);
-	if let Err(e) = client.start() {
-		error!("Discord client error: {:?}", e);
-	}
+
+
+    info!("Connecting to Discord with {} shard(s)", config.shards.unwrap());
+    if let Err(e) = client.start_shards(config.shards.unwrap()) {
+        error!("Discord client error: {:?}", e);
+    }
 }
