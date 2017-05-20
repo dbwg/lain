@@ -45,6 +45,9 @@ fn main() {
     let redis_pool = create_redis_pool(&*config.redis_url.clone().expect("A Redis URL must be provided"));
     info!("Successfully created Redis connection pool (size: {}, url: {})",
         redis_pool.config().pool_size(), config.redis_url.unwrap());
+
+    let mut client = Client::login(&secrets.token);
+
     // pick the number of shards we'll use
     let recommended_shards = util::recommended_shards();
     info!("Discord recommends N={} shards", recommended_shards);
