@@ -39,6 +39,16 @@ fn main() {
     });
 
 
+    client.on_ready(|_ctx, ready| {
+        if let Some(s) = ready.shard {
+            info!("Logged in as '{}' on shard {}/{}",
+                ready.user.name,
+                s[0] + 1, // convert the index to a ordinal
+                s[1]);
+        } else {
+            info!("Logged in as '{}'", ready.user.name);
+        }
+    });
 
     info!("Connecting to Discord with {} shard(s)", config.shards.unwrap());
     if let Err(e) = client.start_shards(config.shards.unwrap()) {
