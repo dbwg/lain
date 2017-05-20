@@ -10,6 +10,7 @@ extern crate r2d2_redis;
 extern crate redis;
 
 mod config;
+mod data;
 
 use std::fs::File;
 use serenity::Client;
@@ -56,6 +57,10 @@ fn main() {
         None => recommended_shards,
     });
 
+    {
+        let mut data = client.data.lock().unwrap();
+        data.insert::<RedisPool>(redis_pool);
+    }
 
     client.on_ready(|_ctx, ready| {
         if let Some(s) = ready.shard {
