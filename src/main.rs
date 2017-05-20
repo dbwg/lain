@@ -5,15 +5,27 @@
 extern crate env_logger;
 extern crate toml;
 extern crate dotenv;
+extern crate r2d2;
+extern crate r2d2_redis;
 extern crate redis;
 
 mod config;
 
 use std::fs::File;
 use serenity::Client;
+use r2d2_redis::RedisConnectionManager;
 use dotenv::dotenv;
 
 use config::{Configuration, Secrets};
+use data::{RedisPool};
+
+fn create_redis_pool(redis_url: &str) -> r2d2::Pool<RedisConnectionManager> {
+    let poolconfig = Default::default();
+    let manager = RedisConnectionManager::new(redis_url)
+     .expect("Error creating Redis connection manager");
+
+    r2d2::Pool::new(poolconfig, manager).unwrap()
+}
 
 fn main() {
     dotenv().ok();
@@ -30,6 +42,9 @@ fn main() {
     config.overlay_env();
 
 
+    let redis_pool = create_redis_pool(&*config.redis_url.clone().expect("A Redis URL must be provided"));
+    info!("Successfully created Redis connection pool (size: {}, url: {})",
+        redis_pool.config().pool_size(), config.redis_url.unwrap());
     // pick the number of shards we'll use
     let recommended_shards = util::recommended_shards();
     info!("Discord recommends N={} shards", recommended_shards);
