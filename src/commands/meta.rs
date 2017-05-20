@@ -74,13 +74,14 @@ command!(stats(_ctx, msg) {
 
     let mem_total = bytes_to_mb(memory.size);
     let mem_rss = bytes_to_mb(memory.resident);
-    let memory = format!("**total:** {:.3}\n**resident:** {:.3}", mem_total, mem_rss);
+    let memory = format!("**total:** {:.3}MiB\n**resident:** {:.3}MiB", mem_total, mem_rss);
 
     let guilds = CACHE.read().unwrap().guilds.len();
 
     let _ = msg.channel_id.send_message(|m| m
         .embed(|e| e
-            .title("Statistics")
+            .color(0xb997ce)
+            .title("__Statistics__")
             .field(|f| f.name("Memory").value(&memory))
             .field(|f| f.name("Guilds").value(&guilds.to_string()))));
 });
