@@ -4,7 +4,9 @@
 
 extern crate env_logger;
 extern crate toml;
+extern crate time;
 extern crate dotenv;
+extern crate typemap;
 extern crate r2d2;
 extern crate r2d2_redis;
 extern crate redis;
@@ -66,6 +68,32 @@ fn main() {
         let mut data = client.data.lock().unwrap();
         data.insert::<RedisPool>(redis_pool);
     }
+
+    client.with_framework(|f| f
+        .configure(|c| c
+            .on_mention(true)
+            .prefix("~"))
+        .on_dispatch_error(|_ctx, msg, error| {
+            match error {
+                DispatchError::RateLimited(wait_s) => {
+                    let _ = msg.channel_id.say(&format!("Try again in **{}s**.", wait_s));
+                },
+                _ => {}, // drop all other errors
+            }
+        })
+        .command("help", |c| c
+            .help_available(false)
+            .exec_help(help_commands::with_embeds))
+        .group("meta", |g| g
+            .command("latency", |c| c
+                .desc(commands::meta::doc::latency::desc)
+                .exec(commands::meta::latency))
+            .command("ping", |c| c
+                .desc(commands::meta::doc::ping::desc)
+                .exec(commands::meta::ping))
+            .command("version", |c| c
+                .desc(commands::meta::doc::version::desc)
+                .exec(commands::meta::version))));
 
     client.on_ready(|_ctx, ready| {
         if let Some(s) = ready.shard {
