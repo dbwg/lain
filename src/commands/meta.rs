@@ -39,12 +39,14 @@ command!(ping(_ctx, msg) {
 });
 
 command!(version(_ctx, msg) {
+    let commit = ::util::commit();
     let _ = msg.channel_id.send_message(|m| m
         .embed(|e| e
-            .title("LainBot")
+            .title("__LainBot__")
             .color(0xb997ce)
             .field(|f| f.name("version").value(::util::version()))
-            .field(|f| f.name("commit").value(::util::commit()))));
+            .field(|f| f.name("commit").value(
+                &format!("**hash:** {}\n**date**: {}", commit.0, commit.1)))));
 });
 
 command!(stats(_ctx, msg) {
