@@ -2,6 +2,7 @@
 #[macro_use] extern crate log;
 #[macro_use] extern crate serenity;
 
+extern crate psutil;
 extern crate env_logger;
 extern crate toml;
 extern crate time;
@@ -93,7 +94,10 @@ fn main() {
                 .exec(commands::meta::ping))
             .command("version", |c| c
                 .desc(commands::meta::doc::version::desc)
-                .exec(commands::meta::version))));
+                .exec(commands::meta::version))
+            .command("stats", |c| c
+                .desc(commands::meta::doc::stats::desc)
+                .exec(commands::meta::stats))));
 
     client.on_ready(|_ctx, ready| {
         if let Some(s) = ready.shard {

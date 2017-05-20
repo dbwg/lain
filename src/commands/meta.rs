@@ -1,4 +1,7 @@
+use psutil;
+use serenity::client::CACHE;
 use time::PreciseTime;
+use ::util::bytes_to_mb;
 
 pub mod doc {
     doc_cmd!(latency,
@@ -8,6 +11,9 @@ pub mod doc {
 
     doc_cmd!(version,
         desc => "Returns the current running version of Lain.");
+
+    doc_cmd!(stats,
+        desc => "Retrieve stats about Lain, including memory utilization, commands/min, and handlers fired/min.");
 }
 
 command!(latency(ctx, msg) {
@@ -39,4 +45,40 @@ command!(version(_ctx, msg) {
             .color(0xb997ce)
             .field(|f| f.name("version").value(::util::version()))
             .field(|f| f.name("commit").value(::util::commit()))));
+});
+
+command!(stats(_ctx, msg) {
+    let process = match psutil::process::Process::new(psutil::getpid()) {
+        Ok(p) => p,
+        Err(e) => {
+            error!("Error getting processes: {:?}", e);
+
+            let _ = msg.channel_id.say(":cry: Error getting process stats.");
+
+            return Ok(());
+        }
+    };
+
+    let memory = match process.memory() {
+        Ok(m) => m,
+        Err(e) => {
+            error!("Error getting process memory: {:?}", e);
+
+            let _ = msg.channel_id.say(":cry: Error getting process memory status.");
+
+            return Ok(());
+        }
+    };
+
+    let mem_total = bytes_to_mb(memory.size);
+    let mem_rss = bytes_to_mb(memory.resident);
+    let memory = format!("**total:** {:.3}\n**resident:** {:.3}", mem_total, mem_rss);
+
+    let guilds = CACHE.read().unwrap().guilds.len();
+
+    let _ = msg.channel_id.send_message(|m| m
+        .embed(|e| e
+            .title("Statistics")
+            .field(|f| f.name("Memory").value(&memory))
+            .field(|f| f.name("Guilds").value(&guilds.to_string()))));
 });
