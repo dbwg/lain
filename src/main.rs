@@ -11,9 +11,14 @@ extern crate redis;
 
 mod config;
 mod data;
+mod util;
+mod commands;
 
+use std::cmp;
+use std::default::Default;
 use std::fs::File;
-use serenity::Client;
+use serenity::prelude::*;
+use serenity::ext::framework::{DispatchError, help_commands};
 use r2d2_redis::RedisConnectionManager;
 use dotenv::dotenv;
 
