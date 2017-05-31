@@ -28,6 +28,7 @@ use std::default::Default;
 use std::collections::HashSet;
 use serenity::prelude::*;
 use serenity::ext::framework::{DispatchError, help_commands};
+use redis::Commands;
 use r2d2_redis::RedisConnectionManager;
 use dotenv::dotenv;
 
@@ -99,6 +100,14 @@ fn run() -> Result<()> {
             .on_mention(true)
             .prefix("~"))
             .owners(owners)
+        .before(move |ctx, msg, cmd| {
+            let conn = data::get_redis_conn(&ctx.data);
+            let _: i64 = conn.incr("usagecount:command:{}".to_owned() + cmd, 1).unwrap();
+
+            info!("Command '{}' used by {}#{}", cmd, msg.author.name, msg.author.discriminator);
+
+            true
+        })
         .on_dispatch_error(|_ctx, msg, error| {
             match error {
                 DispatchError::RateLimited(wait_s) => {
