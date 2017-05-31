@@ -130,10 +130,10 @@ fn run() -> Result<()> {
                 .exec(commands::meta::ping))
             .command("version", |c| c
                 .desc(commands::meta::doc::version::desc)
-                .exec(commands::meta::version))
-            .command("stats", |c| c
-                .desc(commands::meta::doc::stats::desc)
-                .exec(commands::meta::stats))));
+                .exec(commands::meta::version)))
+        .command("stats", |c| c
+            .owners_only(true).help_available(false)
+            .exec(commands::owner::stats)));
 
     client.on_ready(|_ctx, ready| {
         if let Some(s) = ready.shard {

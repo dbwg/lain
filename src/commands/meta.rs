@@ -1,7 +1,4 @@
-use psutil;
-use serenity::client::CACHE;
 use time::PreciseTime;
-use ::util::bytes_to_mb;
 
 pub mod doc {
     doc_cmd!(latency,
@@ -11,9 +8,6 @@ pub mod doc {
 
     doc_cmd!(version,
         desc => "Returns the current running version of Lain.");
-
-    doc_cmd!(stats,
-        desc => "Retrieve stats about Lain, including memory utilization, commands/min, and handlers fired/min.");
 }
 
 command!(latency(ctx, msg) {
@@ -21,7 +15,7 @@ command!(latency(ctx, msg) {
         .unwrap()
         .latency()
         .map_or_else(||"N/A".to_owned(), |s| {
-            format!("Shard gateway latency is **{}.{}s**", s.as_secs(), s.subsec_nanos())
+            format!("Shard gateway latency is **{:.3}s**", s.as_secs() as f64 + 1e-9 * s.subsec_nanos() as f64)
         }));
 });
 
@@ -33,9 +27,8 @@ command!(ping(_ctx, msg) {
     let dt = start.to(end);
 
     let _ = msg.edit(|m|
-        m.content(&format!("Pong! **{}.{}ms**",
-            dt.num_milliseconds(),
-            dt.num_microseconds().unwrap_or(0))));
+        m.content(&format!("Pong! Round-trip time: **{:.2}ms**",
+            dt.num_microseconds().unwrap_or(0) as f64 * 0.001)));
 });
 
 command!(version(_ctx, msg) {
@@ -49,39 +42,3 @@ command!(version(_ctx, msg) {
                 &format!("**hash:** {}\n**date**: {}", commit.0, commit.1)))));
 });
 
-command!(stats(_ctx, msg) {
-    let process = match psutil::process::Process::new(psutil::getpid()) {
-        Ok(p) => p,
-        Err(e) => {
-            error!("Error getting processes: {:?}", e);
-
-            let _ = msg.channel_id.say(":cry: Error getting process stats.");
-
-            return Ok(());
-        }
-    };
-
-    let memory = match process.memory() {
-        Ok(m) => m,
-        Err(e) => {
-            error!("Error getting process memory: {:?}", e);
-
-            let _ = msg.channel_id.say(":cry: Error getting process memory status.");
-
-            return Ok(());
-        }
-    };
-
-    let mem_total = bytes_to_mb(memory.size);
-    let mem_rss = bytes_to_mb(memory.resident);
-    let memory = format!("**total:** {:.3}MiB\n**resident:** {:.3}MiB", mem_total, mem_rss);
-
-    let guilds = CACHE.read().unwrap().guilds.len();
-
-    let _ = msg.channel_id.send_message(|m| m
-        .embed(|e| e
-            .color(0xb997ce)
-            .title("__Statistics__")
-            .field(|f| f.name("Memory").value(&memory))
-            .field(|f| f.name("Guilds").value(&guilds.to_string()))));
-});
