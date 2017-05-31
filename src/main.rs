@@ -1,6 +1,9 @@
+#![recursion_limit = "1024"]
+
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate log;
 #[macro_use] extern crate serenity;
+#[macro_use] extern crate error_chain;
 
 extern crate psutil;
 extern crate env_logger;
@@ -12,14 +15,16 @@ extern crate r2d2;
 extern crate r2d2_redis;
 extern crate redis;
 
+mod errors { error_chain!{} }
 mod config;
 mod data;
 mod util;
 mod commands;
 
 use std::cmp;
-use std::default::Default;
+use std::process;
 use std::fs::File;
+use std::default::Default;
 use serenity::prelude::*;
 use serenity::ext::framework::{DispatchError, help_commands};
 use r2d2_redis::RedisConnectionManager;
@@ -27,31 +32,36 @@ use dotenv::dotenv;
 
 use config::{Configuration, Secrets};
 use data::RedisPool;
+use errors::*;
 
-fn create_redis_pool(redis_url: &str) -> r2d2::Pool<RedisConnectionManager> {
+fn create_redis_pool(redis_url: &str) -> Result<r2d2::Pool<RedisConnectionManager>> {
     let poolconfig = Default::default();
     let manager = RedisConnectionManager::new(redis_url)
-     .expect("Error creating Redis connection manager");
+        .chain_err(|| "Unable to create a Redis connection manager")?;
+    let pool = r2d2::Pool::new(poolconfig, manager)
+        .chain_err(|| "Unable to create a r2d2 Pool for Redis connections")?;
 
-    r2d2::Pool::new(poolconfig, manager).unwrap()
+    Ok(pool)
 }
 
-fn main() {
+fn run() -> Result<()> {
     dotenv().ok();
     env_logger::init().unwrap();
 
+    // -- Load secrets and configuration.
     info!("Loading secrets");
-    let secrets = Secrets::from_env();
+    let secrets = Secrets::from_env()?;
 
     let config_path = "config.toml";
     info!("Loading config from {}", config_path);
     let mut config_file = File::open(config_path)
-        .expect("Error opening config file!");
-    let mut config = Configuration::from_file(&mut config_file);
+        .chain_err(|| "Unable to open config file")?;
+    let mut config = Configuration::from_file(&mut config_file)?;
     config.overlay_env();
 
-
-    let redis_pool = create_redis_pool(&*config.redis_url.clone().expect("A Redis URL must be provided"));
+    // -- Create database connections/pools.
+    let redis_pool = create_redis_pool(
+        &*config.redis_url.clone().ok_or("A Redis URL must be provided")?)?;
     info!("Successfully created Redis connection pool (size: {}, url: {})",
         redis_pool.config().pool_size(), config.redis_url.unwrap());
 
@@ -114,7 +124,19 @@ fn main() {
     });
 
     info!("Connecting to Discord with {} shard(s)", config.shards.unwrap());
-    if let Err(e) = client.start_shards(config.shards.unwrap()) {
-        error!("Discord client error: {:?}", e);
+    client.start_shards(config.shards.unwrap())
+        .chain_err(|| "Error starting shards")?;
+
+    Ok(())
+}
+
+fn main() {
+    if let Err(ref e) = run() {
+        error!("{}", e);
+        for e in e.iter().skip(1) {
+            error!("  caused by: {}", e);
+        }
+
+        process::exit(1);
     }
 }

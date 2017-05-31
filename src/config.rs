@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::env;
+use ::errors::*;
 use toml;
 
 #[derive(Deserialize, Debug)]
@@ -18,12 +19,12 @@ pub struct Secrets {
 }
 
 impl Configuration {
-    pub fn from_file(f: &mut File) -> Configuration {
+    pub fn from_file(f: &mut File) -> Result<Configuration> {
         let mut s = String::new();
         f.read_to_string(&mut s)
-            .expect("Couldn't read from config file!");
+            .chain_err(|| "Error reading configuration file to string")?;
 
-        toml::from_str(&s).expect("Couldn't deserialize config file!")
+        Ok(toml::from_str(&s).chain_err(|| "Error deserializing Configuration")?)
     }
 
     pub fn overlay_env(self: &mut Configuration) {
@@ -33,9 +34,9 @@ impl Configuration {
 }
 
 impl Secrets {
-    pub fn from_env() -> Secrets {
-        Secrets {
-            token: env::var("TOKEN").expect("The TOKEN environment variable must be provided!"),
-        }
+    pub fn from_env() -> Result<Secrets> {
+        Ok(Secrets {
+            token: env::var("TOKEN").chain_err(|| "TOKEN environment var must be set")?,
+        })
     }
 }
