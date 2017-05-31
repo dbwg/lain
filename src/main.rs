@@ -26,7 +26,7 @@ use r2d2_redis::RedisConnectionManager;
 use dotenv::dotenv;
 
 use config::{Configuration, Secrets};
-use data::{RedisPool};
+use data::RedisPool;
 
 fn create_redis_pool(redis_url: &str) -> r2d2::Pool<RedisConnectionManager> {
     let poolconfig = Default::default();
@@ -65,9 +65,12 @@ fn main() {
         None => recommended_shards,
     });
 
+    // Insert stuff into `ctx.data`.
+    // Note: We wrap this in its own block so that when the block ends,
+    // `data` is dropped and thus the `Mutex` is unlocked.
     {
         let mut data = client.data.lock().unwrap();
-        data.insert::<RedisPool>(redis_pool);
+        data.insert::<RedisPool>(redis_pool.clone());
     }
 
     client.with_framework(|f| f
