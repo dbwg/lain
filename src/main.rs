@@ -111,6 +111,8 @@ fn run() -> Result<()> {
         .on_dispatch_error(|_ctx, msg, error| {
             match error {
                 DispatchError::RateLimited(wait_s) => {
+                    info!("User {}#{} exceeded rate limits with command call '{}'; making them wait {}s",
+                        msg.author.name, msg.author.discriminator, msg.content, wait_s);
                     let _ = msg.channel_id.say(&format!("Try again in **{}s**.", wait_s));
                 },
                 _ => {}, // drop all other errors
