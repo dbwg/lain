@@ -98,8 +98,8 @@ fn run() -> Result<()> {
     client.with_framework(|f| f
         .configure(|c| c
             .on_mention(true)
-            .prefix("~"))
             .owners(owners)
+            .prefixes(vec!["~", "lain~"]))
         .before(move |ctx, msg, cmd| {
             let conn = data::get_redis_conn(&ctx.data);
             let _: i64 = conn.incr("usagecount:command:{}".to_owned() + cmd, 1).unwrap();
