@@ -25,6 +25,7 @@ use std::cmp;
 use std::process;
 use std::fs::File;
 use std::default::Default;
+use std::collections::HashSet;
 use serenity::prelude::*;
 use serenity::ext::framework::{DispatchError, help_commands};
 use r2d2_redis::RedisConnectionManager;
@@ -67,13 +68,23 @@ fn run() -> Result<()> {
 
     let mut client = Client::login(&secrets.token);
 
-    // pick the number of shards we'll use
+    // Recalculate number of shards we'll use.
+    //   n_shards = max(n_configured, n_recommended)
     let recommended_shards = util::recommended_shards();
     info!("Discord recommends N={} shards", recommended_shards);
     config.shards = Some(match config.shards {
         Some(n) => cmp::max(n, recommended_shards), // if we're using less than recommended, autobump to what discord recommends
         None => recommended_shards,
     });
+
+    let owners = {
+        let info = serenity::client::rest::get_current_application_info()
+            .chain_err(|| "Error getting application info via serenity::client::rest")?;
+        let mut s = HashSet::new();
+        s.insert(info.owner.id);
+
+        s
+    };
 
     // Insert stuff into `ctx.data`.
     // Note: We wrap this in its own block so that when the block ends,
@@ -87,6 +98,7 @@ fn run() -> Result<()> {
         .configure(|c| c
             .on_mention(true)
             .prefix("~"))
+            .owners(owners)
         .on_dispatch_error(|_ctx, msg, error| {
             match error {
                 DispatchError::RateLimited(wait_s) => {
