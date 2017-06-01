@@ -9,5 +9,4 @@ def index():
 @app.route('/dash')
 @login_required
 def dash():
-	return "foooo"
-
+	return render_template('dash.html')
